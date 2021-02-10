@@ -92,7 +92,7 @@ int main(int argc, char **argv){
         &channels,
         0
     );
-    
+   printf("%d %d %d \n", width, height, channels); 
     if (!img) {
         printf("AN ERROR HAPPEND ! :(\n");
         exit(1);
