@@ -16,25 +16,40 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize.h"
 
+
 #define TURING          "turing.jpg"
 #define HIGH_QUALITY    100
 #define BW_IMAGE_NAME   "image_bw_out.jpg"
 #define ASCII_CHARS     "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'."
+#define ASCII_CHARS_LEN (strlen(ASCII_CHARS) - 1)
 #define RESIZE_X        512
 #define RESIZE_Y        512
+#define RANGE_MIN       33
+#define RANGE_MAX       126
+#define IMAGE_DATA_IN   unsigned char *img, int w, int h, int c
+#define IMAGE_DATA_PASS img, w, h, c
+#define PIXEL_DATA_IN   int x, int y
+#define PIXEL_DATA_PASS x, y
+#define MAX_INTENSE     255.000000
+#define GET_BW_VALUE    getPixelValueBw(IMAGE_DATA_PASS, PIXEL_DATA_PASS)
+#define GET_RATIO       (GET_BW_VALUE / MAX_INTENSE)
+#define ASCII_INDEX     getIndexASCII(IMAGE_DATA_PASS, PIXEL_DATA_PASS)
 
-int getPixelValueBw(unsigned char *img, int w, int h, int c, int x, int y){
+
+int getPixelValueBw(IMAGE_DATA_IN, PIXEL_DATA_IN){
     return img[c * (y * w + x)];
 }
 
-int getIndexASCII(unsigned char *img, int w, int h, int c, int x, int y){
-    int pval  = getPixelValueBw(img, w, h, c, x, y);
-    int index = (pval / 255.00) * (strlen(ASCII_CHARS) - 1);
-    return index;
+int getIndexASCII(IMAGE_DATA_IN, PIXEL_DATA_IN){
+    return GET_RATIO * ASCII_CHARS_LEN;
 }
 
-char getCharASCII(unsigned char *img, int w, int h, int c, int x, int y){
-    return ASCII_CHARS[getIndexASCII(img, w, h, c, x, y)];
+char getCharASCII(IMAGE_DATA_IN, PIXEL_DATA_IN){
+    return ASCII_CHARS[ASCII_INDEX];
+}
+
+char getASCII(IMAGE_DATA_IN, PIXEL_DATA_IN){
+    return (char) GET_RATIO * (RANGE_MAX - RANGE_MIN) + RANGE_MIN;
 }
 
 
@@ -50,7 +65,7 @@ size_t calcSizeBW(int w, int h, int c){
     return bwChannels(c) * w * h; 
 }
 
-unsigned char *bwImage(unsigned char *img, int w, int h, int c){
+unsigned char *bwImage(IMAGE_DATA_IN){
     unsigned char* bw_image = malloc(calcSizeBW(w, h, c));
     
     if (!bw_image){
@@ -72,7 +87,7 @@ unsigned char *bwImage(unsigned char *img, int w, int h, int c){
     return bw_image;
 }
 
-void printASCII(unsigned char *img, int w, int h, int c){
+void printASCII(IMAGE_DATA_IN){
     for (int i = 0; i < h; i++){
         for (int j = 0; j < w; j++)
             printf("%c", getCharASCII(img, w, h, c, j, i));
